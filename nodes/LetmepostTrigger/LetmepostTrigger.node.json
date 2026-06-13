@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-letmepost.letmepostTrigger",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Marketing", "Communication"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/letmepost/n8n-nodes-letmepost?tab=readme-ov-file#credentials"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.letmepost.dev"
+			}
+		]
+	}
+}
