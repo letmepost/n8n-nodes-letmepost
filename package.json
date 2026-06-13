@@ -25,6 +25,9 @@
 		"type": "git",
 		"url": "https://github.com/letmepost/n8n-nodes-letmepost.git"
 	},
+	"bugs": {
+		"url": "https://github.com/letmepost/n8n-nodes-letmepost/issues"
+	},
 	"scripts": {
 		"build": "n8n-node build",
 		"build:watch": "tsc --watch",
