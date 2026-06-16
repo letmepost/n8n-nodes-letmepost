@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-letmepost",
-	"version": "0.1.5",
+	"version": "0.1.6",
 	"description": "n8n community node for letmepost.dev — publish to Bluesky, X/Twitter, LinkedIn, Instagram, Threads, Facebook, Pinterest and TikTok through one API, with preflight validation and transparent errors.",
 	"license": "MIT",
 	"homepage": "https://letmepost.dev",
