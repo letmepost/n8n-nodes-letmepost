@@ -278,6 +278,56 @@ export class Letmepost implements INodeType {
 				],
 			},
 			{
+				displayName: 'Bluesky Reply',
+				name: 'blueskyReply',
+				type: 'collection',
+				placeholder: 'Add Reply Field',
+				default: {},
+				description: 'Reply threading for a Bluesky target. Use the strong ref of a prior post.',
+				displayOptions: {
+					show: {
+						resource: ['post'],
+						operation: ['publish'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Reply To CID',
+						name: 'replyToCid',
+						type: 'string',
+						default: '',
+						placeholder: 'bafy…',
+						description: 'CID of the parent post to reply to. Sent together with the Reply To URI.',
+					},
+					{
+						displayName: 'Reply To URI',
+						name: 'replyToUri',
+						type: 'string',
+						default: '',
+						placeholder: 'at://did:plc:…/app.bsky.feed.post/…',
+						description:
+							'AT-Proto URI of the parent post to reply to. Sent together with the Reply To CID.',
+					},
+					{
+						displayName: 'Thread Root CID',
+						name: 'replyRootCid',
+						type: 'string',
+						default: '',
+						placeholder: 'bafy…',
+						description: 'CID of the thread root post. Sent together with the Thread Root URI.',
+					},
+					{
+						displayName: 'Thread Root URI',
+						name: 'replyRootUri',
+						type: 'string',
+						default: '',
+						placeholder: 'at://did:plc:…/app.bsky.feed.post/…',
+						description:
+							'AT-Proto URI of the thread root post, for replies deeper than the first. Leave empty to reply to a top-level post.',
+					},
+				],
+			},
+			{
 				displayName: 'Additional Fields',
 				name: 'additionalFields',
 				type: 'collection',
@@ -551,6 +601,12 @@ async function publishPost(this: IExecuteFunctions, i: number): Promise<IDataObj
 
 	const text = this.getNodeParameter('text', i, '') as string;
 	const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
+	const blueskyReply = this.getNodeParameter('blueskyReply', i, {}) as {
+		replyToUri?: string;
+		replyToCid?: string;
+		replyRootUri?: string;
+		replyRootCid?: string;
+	};
 	const mediaParam = this.getNodeParameter('media', i, {}) as {
 		item?: Array<{
 			kind: string;
@@ -562,8 +618,46 @@ async function publishPost(this: IExecuteFunctions, i: number): Promise<IDataObj
 		}>;
 	};
 
+	const replyToUri = blueskyReply.replyToUri?.trim();
+	const replyToCid = blueskyReply.replyToCid?.trim();
+	const replyRootUri = blueskyReply.replyRootUri?.trim();
+	const replyRootCid = blueskyReply.replyRootCid?.trim();
+
+	if (Boolean(replyToUri) !== Boolean(replyToCid)) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'Bluesky reply needs both Reply To URI and Reply To CID.',
+			{ itemIndex: i },
+		);
+	}
+	if (Boolean(replyRootUri) !== Boolean(replyRootCid)) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'Bluesky thread root needs both Thread Root URI and Thread Root CID.',
+			{ itemIndex: i },
+		);
+	}
+	if ((replyRootUri || replyRootCid) && !(replyToUri && replyToCid)) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'Thread root requires Reply To URI + Reply To CID (the parent).',
+			{ itemIndex: i },
+		);
+	}
+
+	let blueskyOptions: IDataObject | undefined;
+	if (replyToUri && replyToCid) {
+		blueskyOptions = { platform: 'bluesky', replyToUri, replyToCid };
+		if (replyRootUri && replyRootCid) {
+			blueskyOptions.replyRootUri = replyRootUri;
+			blueskyOptions.replyRootCid = replyRootCid;
+		}
+	}
+
 	const body: IDataObject = {
-		targets: accountIds.map((id) => ({ accountId: id })),
+		targets: accountIds.map((id) =>
+			blueskyOptions ? { accountId: id, options: blueskyOptions } : { accountId: id },
+		),
 	};
 
 	if (text) {
