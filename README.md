@@ -34,6 +34,8 @@ This package ships two nodes.
 
 When publishing, you can attach media by public URL, by an existing letmepost media ID, or directly from a binary property on the incoming item (sent inline). Set an **Idempotency Key** to make retries safe — reusing the same key never publishes twice.
 
+To reply to a Bluesky post, expand **Bluesky Reply** (targets a Bluesky account) and provide the parent post's strong ref from a prior publish response: **Reply To URI** and **Reply To CID** (both required, sent together). For replies deeper than the first, also set **Thread Root URI** and **Thread Root CID** (both required together); omit them to reply to a top-level post and the root defaults to the parent.
+
 ### Letmepost Trigger
 
 Starts a workflow when letmepost.dev sends a webhook event (for example `post.published` or `post.failed`). When the workflow is activated, the trigger registers a webhook endpoint with letmepost.dev automatically and verifies the HMAC signature on every delivery; deactivating the workflow removes the endpoint. Leave **Events** empty to receive all events, or select specific ones.
